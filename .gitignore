@@ -1,0 +1,75 @@
+# External/cloned repositories (documented but not included)
+# - llama.cpp: Local LLM inference engine (https://github.com/ggerganov/llama.cpp)
+# - ComfyUI: Stable Diffusion workflow UI (https://github.com/comfyanonymous/ComfyUI)
+# - LoRA_training: Model fine-tuning tools (kohya_ss, sd-scripts, etc.)
+# - musevision-fileshare: Internal file sharing
+CALab/world_building_network/
+StoryLab/llama.cpp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Binary files
+*.gguf
+*.pdf
+*.epub
+*.mobi
+*.zip
+*.tar.gz
+
+# Images (keep smaller ones, ignore large)
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Data and logs
+*.log
+generation_log.txt
+chroma_db/
+*.db
+
+# OS files
+.DS_Store
+.directory
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

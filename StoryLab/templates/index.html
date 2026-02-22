@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Elysara Chronicles - Story Lab</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .tree { margin: 20px; }
+        .node circle { fill: #fff; stroke: steelblue; stroke-width: 3px; }
+        .node text { font: 12px sans-serif; }
+        .link { fill: none; stroke: #ccc; stroke-width: 2px; }
+        .tabs { margin: 20px 0; }
+        .tab-button { background: #f0f0f0; border: none; padding: 10px; cursor: pointer; }
+        .tab-button.active { background: #ddd; }
+        .tab-content { display: none; padding: 10px; border: 1px solid #ccc; }
+        .tab-content.active { display: block; }
+        .formatted-text { white-space: pre-wrap; font-family: monospace; max-height: 400px; overflow-y: auto; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        #story-display { margin: 20px; padding: 10px; border: 1px solid #ccc; }
+        #critique-display { margin: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; }
+        button { padding: 10px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Elysara Chronicles - Exploratory Story Generation</h1>
+     <label>Model: <select id="model-select">
+         <option value="qwen" selected>Qwen 7B</option>
+         <option value="phi3">Phi-3 Mini</option>
+         <option value="tinyllama">TinyLlama Reasoning</option>
+         <option value="deepseek">DeepSeek-R1</option>
+     </select></label>
+     <label><input type="checkbox" id="multi-step"> Multi-Step Generation</label>
+      <label>Batch: <input type="number" id="batch-num" value="5" min="1" max="20"></label>
+      <label>Theme/Topic: <input type="text" id="theme-input" value="space Imperialism"></label>
+      <div id="api-options">
+          <label><input type="checkbox" id="use-news"> Use News Inspiration</label>
+          <label><input type="checkbox" id="use-books" checked> Use Book Excerpts</label>
+          <label><input type="checkbox" id="use-random-books" checked> Use Random Book Genres</label>
+          <label><input type="checkbox" id="use-archive" checked> Use Archival Texts</label>
+          <label><input type="checkbox" id="use-open-library" checked> Use Open Library</label>
+          <label><input type="checkbox" id="use-images"> Generate Images</label>
+          <label><input type="checkbox" id="use-poem" checked> Use Poem Inspiration</label>
+          <label><input type="checkbox" id="use-tts"> Generate TTS Audio</label>
+          <label><input type="checkbox" id="use-sentiment"> Analyze Sentiment</label>
+      </div>
+     <button id="generate-btn">Generate New Story</button>
+     <button id="batch-generate-btn">Batch Generate</button>
+     <button id="calab-generate-btn">Generate with CALab</button>
+     <button id="toggle-world">Toggle World-Building View</button>
+     <button id="toggle-fractal">Toggle Fractal Explorer</button>
+     <button id="export-btn">Export Current Data</button>
+     <button id="clear-db-btn">Clear DB</button>
+     <div id="status" style="display:none; position:fixed; top:10px; right:10px; background:#f0f0f0; padding:10px; border:1px solid #ccc; border-radius:5px;">
+         <span id="status-text">Initializing...</span> <span id="spinner" style="animation: spin 1s linear infinite;">⟳</span>
+         <div id="progress-container" style="display:none; margin-top:10px;">
+             <div id="progress-bar" style="width:0%; height:10px; background:#4caf50; transition:width 0.5s;"></div>
+         </div>
+     </div>
+    <div id="dna-tree" class="tree"></div>
+    <div id="dna-edit" style="display:none;">
+        <h3>Edit World-DNA</h3>
+        <textarea id="dna-text" rows="10" cols="80"></textarea>
+        <button id="save-dna">Save DNA</button>
+    </div>
+    <button id="edit-dna-btn">Edit DNA</button>
+    <button id="evolve-dna-btn">Evolve DNA</button>
+     <div id="world-building" style="display:none;">
+         <h2>World-Building Dashboard</h2>
+         <div class="tabs">
+             <button class="tab-button active" onclick="showTab('dna')">DNA</button>
+             <button class="tab-button" onclick="showTab('biomes')">Biomes</button>
+             <button class="tab-button" onclick="showTab('characters')">Characters</button>
+             <button class="tab-button" onclick="showTab('arcs')">Plot Arcs</button>
+             <button class="tab-button" onclick="showTab('evolution')">Evolution</button>
+         </div>
+         <div id="dna-tab" class="tab-content active">
+             <h3>1. Fleshed World-DNA</h3>
+             <div id="dna-text-display" class="formatted-text">No DNA yet.</div>
+         </div>
+         <div id="biomes-tab" class="tab-content">
+             <h3>2. Biome Details</h3>
+             <div id="biome-text" class="formatted-text">No biomes yet.</div>
+         </div>
+         <div id="characters-tab" class="tab-content">
+             <h3>3. Characters & Factions</h3>
+             <div id="character-text" class="formatted-text">No characters yet.</div>
+         </div>
+         <div id="arcs-tab" class="tab-content">
+             <h3>4. Plot Arcs</h3>
+             <div id="arc-text" class="formatted-text">No arcs yet.</div>
+         </div>
+         <div id="evolution-tab" class="tab-content">
+             <h3>5. Historical Evolution</h3>
+             <div id="evolution-timeline"></div>
+             <div id="evolution-text" class="formatted-text">No evolution yet.</div>
+         </div>
+     </div>
+     <div id="story-display">
+         <h2>Generated Story</h2>
+         <pre id="story-text">Click generate to create a story.</pre>
+     </div>
+    <div id="critique-display">
+        <h2>Critique</h2>
+        <pre id="critique-text">No critique yet.</pre>
+    </div>
+    <div id="metrics-display">
+        <h2>Metrics</h2>
+        <pre id="metrics-text">No metrics yet.</pre>
+        <div id="rating" style="display:none;">
+            <h3>Rate this story:</h3>
+            <input type="range" id="rating-slider" min="1" max="10" value="5">
+            <span id="rating-value">5</span>
+            <button id="submit-rating">Submit Rating</button>
+        </div>
+    </div>
+    <div id="calab-display" style="display:none;">
+        <h2>CALab Emergent World</h2>
+        <pre id="calab-text" class="formatted-text"></pre>
+    </div>
+    <div id="fractal-explorer" style="display:none;">
+        <h2>Fractal Explorer</h2>
+        <button id="fractal-generate-btn">Generate Fractal</button>
+        <img id="fractal-image" src="" alt="Generated Fractal" style="max-width: 100%;"/>
+    </div>
+    <div id="story-graph" class="tree">
+        <h2>Story Connections</h2>
+        <div>
+            <button id="zoom-in">Zoom In</button>
+            <button id="zoom-out">Zoom Out</button>
+            <button id="reset-zoom">Reset</button>
+            <label><input type="checkbox" id="show-entities" checked> Show Entities</label>
+            <input type="text" id="search-entity" placeholder="Search entity">
+        </div>
+        <svg id="graph-svg" width="800" height="600"></svg>
+    </div>
+
+    <script>
+        (function() {
+        console.log('Script loaded successfully');
+        // Parse world-DNA into tree structure
+        const dnaText = {{ dna | tojson }};  // Passed from Flask
+        const dnaTree = parseDnaToTree(dnaText);
+
+        // D3 Tree
+        const width = 800;
+        const dx = 10;
+        const dy = width / 6;
+        const margin = {top: 10, right: 120, bottom: 10, left: 40};
+
+        const tree = d3.tree().nodeSize([dx, dy]);
+        const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+
+        const svg = d3.select("#dna-tree").append("svg")
+            .attr("width", width)
+            .attr("height", dx)
+            .attr("viewBox", [-margin.left, -margin.top, width, dx])
+            .style("font", "10px sans-serif")
+            .style("user-select", "none");
+
+        const gLink = svg.append("g")
+            .attr("fill", "none")
+            .attr("stroke", "#555")
+            .attr("stroke-opacity", 0.4)
+            .attr("stroke-width", 1.5);
+
+        const gNode = svg.append("g")
+            .attr("cursor", "pointer")
+            .attr("pointer-events", "all");
+
+        function update(event, source) {
+            const nodes = tree.nodes(dnaTree);
+            const links = tree.links(nodes);
+
+            // Compute the new tree layout.
+            nodes.forEach(d => d.y = d.depth * dy);
+
+            const transition = svg.transition()
+                .duration(event?.altKey ? 2500 : 250)
+                .tween("resize", window.ResizeObserver ? null : () => () => svg.dispatch("toggle"));
+
+            // Update the nodes…
+            const node = gNode.selectAll("g")
+                .data(nodes, d => d.id);
+
+            // Enter any new nodes at the parent's previous position.
+            const nodeEnter = node.enter().append("g")
+                .attr("transform", d => `translate(${source.y0},${source.x0})`)
+                .attr("fill-opacity", 0)
+                .attr("stroke-opacity", 0)
+                .on("click", (event, d) => {
+                    d.children = d.children ? null : d._children;
+                    update(event, d);
+                });
+
+            nodeEnter.append("circle")
+                .attr("r", 2.5)
+                .attr("fill", d => d._children ? "#555" : "#999")
+                .attr("stroke-width", 10);
+
+            nodeEnter.append("text")
+                .attr("dy", "0.31em")
+                .attr("x", d => d._children ? -6 : 6)
+                .attr("text-anchor", d => d._children ? "end" : "start")
+                .text(d => d.data.name)
+                .clone(true).lower()
+                .attr("stroke-linejoin", "round")
+                .attr("stroke-width", 3)
+                .attr("stroke", "white");
+
+            // Transition nodes to their new position.
+            const nodeUpdate = node.merge(nodeEnter).transition(transition)
+                .attr("transform", d => `translate(${d.y},${d.x})`)
+                .attr("fill-opacity", 1)
+                .attr("stroke-opacity", 1);
+
+            // Transition exiting nodes to the parent's new position.
+            const nodeExit = node.exit().transition(transition).remove()
+                .attr("transform", d => `translate(${source.y},${source.x})`)
+                .attr("fill-opacity", 0)
+                .attr("stroke-opacity", 0);
+
+            // Update the links…
+            const link = gLink.selectAll("path")
+                .data(links, d => d.target.id);
+
+            // Enter any new links at the parent's previous position.
+            const linkEnter = link.enter().append("path")
+                .attr("d", d => {
+                    const o = {x: source.x0, y: source.y0};
+                    return diagonal({source: o, target: o});
+                });
+
+            // Transition links to their new position.
+            link.merge(linkEnter).transition(transition)
+                .attr("d", diagonal);
+
+            // Transition exiting nodes to the parent's new position.
+            link.exit().transition(transition).remove()
+                .attr("d", d => {
+                    const o = {x: source.x, y: source.y};
+                    return diagonal({source: o, target: o});
+                });
+
+            // Stash the old positions for transition.
+            nodes.forEach(d => {
+                d.x0 = d.x;
+                d.y0 = d.y;
+            });
+        }
+
+        function updateTree() {
+            const dnaTree = parseDnaToTree(dnaText);
+            dnaTree.x0 = dy / 2;
+            dnaTree.y0 = 0;
+            dnaTree.descendants().forEach((d, i) => {
+                d.id = i;
+                d._children = d.children;
+                if (d.depth && d.data.name.length !== 7) d.children = null;
+            });
+            update(null, dnaTree);
+        }
+
+        updateTree();
+
+        function parseDnaToTree(text) {
+            const lines = text.split('\n');
+            const root = {name: 'World-DNA', children: []};
+            let current = root;
+            let stack = [root];
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                const level = line.length - line.trimStart().length;
+                const name = trimmed.replace(/^#+\s*/, '');
+
+                while (stack.length > level / 2 + 1) stack.pop();
+                current = stack[stack.length - 1];
+
+                const node = {name, children: []};
+                current.children.push(node);
+                stack.push(node);
+            }
+            return root;
+        }
+
+        function showStatus(text) {
+            document.getElementById('status-text').textContent = text;
+            document.getElementById('status').style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('status').style.display = 'none';
+        }
+
+        // Initial status
+        showStatus('App loaded. Ready for generation.');
+
+        // Generate story
+        const btn = document.getElementById('generate-btn');
+        console.log('Button element:', btn);
+        if (!btn) {
+            console.error('Generate button not found!');
+            return;
+        }
+        btn.addEventListener('click', () => {
+            console.log('Generate button clicked');
+            alert('Generation started! Check the status box in the top-right corner for progress.');
+            // Disable button and show loading
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            showStatus('Starting generation...');
+            const multiStep = document.getElementById('multi-step').checked;
+            const model = document.getElementById('model-select').value;
+            const theme = document.getElementById('theme-input').value;
+            const useNews = document.getElementById('use-news').checked;
+            const useBooks = document.getElementById('use-books').checked;
+            const useRandomBooks = document.getElementById('use-random-books').checked;
+            const useArchive = document.getElementById('use-archive').checked;
+            const useOpenLibrary = document.getElementById('use-open-library').checked;
+            const useImages = document.getElementById('use-images').checked;
+            const usePoem = document.getElementById('use-poem').checked;
+            const useTts = document.getElementById('use-tts').checked;
+            const useSentiment = document.getElementById('use-sentiment').checked;
+            showStatus('Initializing generation with ' + model + (multiStep ? ' (multi-step)' : ' (single-step)') + '...');
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('progress-bar').style.width = '10%';
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 min timeout
+            console.log('Sending fetch request...');
+            fetch('/generate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({multi_step: multiStep, model: model, theme: theme, use_news: useNews, use_books: useBooks, use_random_books: useRandomBooks, use_archive: useArchive, use_open_library: useOpenLibrary, use_images: useImages, use_poem: usePoem, use_tts: useTts, use_sentiment: useSentiment}),
+                signal: controller.signal
+            })
+               .then(response => {
+                   console.log('Response received:', response.status);
+                   clearTimeout(timeoutId);
+                   if (!response.ok) {
+                       throw new Error('Server error: ' + response.status);
+                   }
+                   showStatus('Running LLM inference...');
+                   document.getElementById('progress-bar').style.width = '50%';
+                   return response.json();
+               })
+               .then(data => {
+                   console.log('Data received:', data);
+                   showStatus('Processing critique and metrics...');
+                   document.getElementById('progress-bar').style.width = '80%';
+                    setTimeout(() => {
+                        hideStatus();
+                        document.getElementById('story-text').textContent = data.story;
+                        document.getElementById('critique-text').textContent = JSON.stringify(data.critique, null, 2);
+                        document.getElementById('metrics-text').textContent = JSON.stringify(data.metrics, null, 2);
+                        if (data.extra) {
+                            document.getElementById('dna-text-display').textContent = data.extra.fleshed_dna || 'No DNA';
+                            document.getElementById('biome-text').textContent = data.extra.biome_details || 'No biomes';
+                            document.getElementById('character-text').textContent = data.extra.character_details || 'No characters';
+                            document.getElementById('arc-text').textContent = data.extra.plot_arcs || 'No arcs';
+                            document.getElementById('evolution-text').textContent = data.extra.historical_evolution || 'No evolution';
+                            updateEvolutionTimeline(data.extra.historical_evolution || '');
+                        }
+                        document.getElementById('rating').style.display = 'block';
+                        showStatus('Updating graph...');
+                        document.getElementById('progress-bar').style.width = '100%';
+                        updateGraph();
+                        // Re-enable button
+                        btn.disabled = false;
+                        btn.textContent = 'Generate New Story';
+                        setTimeout(() => {
+                            document.getElementById('progress-container').style.display = 'none';
+                            document.getElementById('progress-bar').style.width = '0%';
+                        }, 1000);
+                    }, 500); // Brief delay for visibility
+               })
+               .catch(error => {
+                   console.error('Generation failed:', error);
+                   clearTimeout(timeoutId);
+                   if (error.name === 'AbortError') {
+                       showStatus('Generation timed out. LLM may be slow or failed.');
+                   } else {
+                       showStatus('Error: ' + error.message + '. Check console for details.');
+                   }
+                   setTimeout(() => {
+                       hideStatus();
+                       btn.disabled = false;
+                       btn.textContent = 'Generate New Story';
+                       document.getElementById('progress-container').style.display = 'none';
+                       document.getElementById('progress-bar').style.width = '0%';
+                   }, 5000);
+                });
+         });
+
+
+        // Batch generate
+        document.getElementById('batch-generate-btn').addEventListener('click', () => {
+              const num = parseInt(document.getElementById('batch-num').value);
+              const multiStep = document.getElementById('multi-step').checked;
+              const model = document.getElementById('model-select').value;
+              const theme = document.getElementById('theme-input').value;
+              const useNews = document.getElementById('use-news').checked;
+              const useBooks = document.getElementById('use-books').checked;
+              const useRandomBooks = document.getElementById('use-random-books').checked;
+              const useArchive = document.getElementById('use-archive').checked;
+              const useOpenLibrary = document.getElementById('use-open-library').checked;
+              const useImages = document.getElementById('use-images').checked;
+              const usePoem = document.getElementById('use-poem').checked;
+              const useTts = document.getElementById('use-tts').checked;
+              const useSentiment = document.getElementById('use-sentiment').checked;
+             showStatus('Batch generating ' + num + ' stories...');
+             fetch('/batch_generate', {
+                 method: 'POST',
+                 headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({num: num, multi_step: multiStep, model: model, theme: theme, use_news: useNews, use_books: useBooks, use_random_books: useRandomBooks, use_archive: useArchive, use_open_library: useOpenLibrary, use_images: useImages, use_poem: usePoem, use_tts: useTts, use_sentiment: useSentiment})
+             })
+                .then(response => response.json())
+                .then(data => {
+                    hideStatus();
+                    document.getElementById('story-text').textContent = `Batch generated ${data.length} stories. Last: ${data[data.length-1].story}`;
+                    showStatus('Updating graph...');
+                    updateGraph();
+                    alert('Batch complete!');
+                });
+        });
+
+        // CALab generate
+        document.getElementById('calab-generate-btn').addEventListener('click', () => {
+            showStatus('Generating world with CALab...');
+            document.getElementById('calab-display').style.display = 'block';
+            document.getElementById('calab-text').textContent = 'Generating...';
+            fetch('/calab/generate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({generations: 100}) // Example: run for 100 generations
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideStatus();
+                document.getElementById('calab-text').textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error('CALab generation failed:', error);
+                showStatus('Error: ' + error.message);
+                document.getElementById('calab-text').textContent = 'Generation failed. See console for details.';
+            });
+        });
+
+        // Toggle Fractal Explorer
+        document.getElementById('toggle-fractal').addEventListener('click', () => {
+            const fe = document.getElementById('fractal-explorer');
+            fe.style.display = fe.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Fractal generate
+        document.getElementById('fractal-generate-btn').addEventListener('click', () => {
+            showStatus('Generating fractal...');
+            const fractalImage = document.getElementById('fractal-image');
+            fractalImage.src = '';
+            fetch('/fractal/generate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({}) // Add parameters here if needed
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                hideStatus();
+                const objectURL = URL.createObjectURL(blob);
+                fractalImage.src = objectURL;
+            })
+            .catch(error => {
+                console.error('Fractal generation failed:', error);
+                showStatus('Error: ' + error.message);
+            });
+        });
+
+
+
+        // Rating
+        document.getElementById('rating-slider').addEventListener('input', (e) => {
+            document.getElementById('rating-value').textContent = e.target.value;
+        });
+        document.getElementById('submit-rating').addEventListener('click', () => {
+            const rating = document.getElementById('rating-slider').value;
+            fetch('/rate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({rating: parseInt(rating)})
+            });
+            alert('Rating submitted!');
+        });
+
+        let zoom = d3.zoom().scaleExtent([0.1, 10]).on("zoom", zoomed);
+        const graphSvg = d3.select("#graph-svg").call(zoom);
+        let g = graphSvg.append("g");
+
+        function zoomed(event) {
+            g.attr("transform", event.transform);
+        }
+
+        document.getElementById('zoom-in').addEventListener('click', () => {
+            graphSvg.transition().call(zoom.scaleBy, 1.2);
+        });
+        document.getElementById('zoom-out').addEventListener('click', () => {
+            graphSvg.transition().call(zoom.scaleBy, 0.8);
+        });
+        document.getElementById('reset-zoom').addEventListener('click', () => {
+            graphSvg.transition().call(zoom.transform, d3.zoomIdentity);
+        });
+
+        function updateGraph() {
+            fetch('/graph')
+                .then(response => response.json())
+                .then(data => {
+                    g.selectAll("*").remove();
+
+                    const showEntities = document.getElementById('show-entities').checked;
+                    const searchTerm = document.getElementById('search-entity').value.toLowerCase();
+                    let filteredNodes = data.nodes;
+                    let filteredLinks = data.links;
+                    if (!showEntities) {
+                        filteredNodes = data.nodes.filter(d => d.type !== 'entity');
+                        filteredLinks = data.links.filter(d => filteredNodes.some(n => n.id === d.source) && filteredNodes.some(n => n.id === d.target));
+                    }
+                    if (searchTerm) {
+                        filteredNodes = filteredNodes.filter(d => d.id.toLowerCase().includes(searchTerm) || (d.text && d.text.toLowerCase().includes(searchTerm)));
+                        filteredLinks = filteredLinks.filter(d => filteredNodes.some(n => n.id === d.source) && filteredNodes.some(n => n.id === d.target));
+                    }
+
+                    const simulation = d3.forceSimulation(filteredNodes)
+                        .force("link", d3.forceLink(filteredLinks).id(d => d.id).distance(100))
+                        .force("charge", d3.forceManyBody().strength(-300))
+                        .force("center", d3.forceCenter(400, 300));
+
+                    const link = g.append("g")
+                        .attr("stroke", d => d.type === 'contains' ? "#ccc" : "#f00")
+                        .attr("stroke-opacity", 0.6)
+                        .attr("stroke-width", 1.5)
+                        .selectAll("line")
+                        .data(filteredLinks)
+                        .join("line")
+                        .attr("stroke-width", d => d.type === 'contains' ? 1 : 3);
+
+                    const node = g.append("g")
+                        .attr("stroke", "#fff")
+                        .attr("stroke-width", 1.5)
+                        .selectAll("circle")
+                        .data(filteredNodes)
+                        .join("circle")
+                        .attr("r", d => d.type === 'entity' ? 3 : 5)
+                        .attr("fill", d => d.type === 'entity' ? "orange" : "steelblue")
+                        .call(drag(simulation));
+
+                    node.append("title")
+                        .text(d => d.text || d.id);
+
+                    simulation.on("tick", () => {
+                        link
+                            .attr("x1", d => d.source.x)
+                            .attr("y1", d => d.source.y)
+                            .attr("x2", d => d.target.x)
+                            .attr("y2", d => d.target.y);
+                    });
+
+                    function drag(simulation) {
+                        function dragstarted(event, d) {
+                            if (!event.active) simulation.alphaTarget(0.3).restart();
+                            d.fx = d.x;
+                            d.fy = d.y;
+                        }
+
+                        function dragged(event, d) {
+                            d.fx = event.x;
+                            d.fy = event.y;
+                        }
+
+                        function dragended(event, d) {
+                            if (!event.active) simulation.alphaTarget(0);
+                            d.fx = null;
+                            d.fy = null;
+                        }
+
+                        return d3.drag()
+                            .on("start", dragstarted)
+                            .on("drag", dragged)
+                            .on("end", dragended);
+                    }
+                    hideStatus();
+                });
+        }
+
+        document.getElementById('show-entities').addEventListener('change', updateGraph);
+        document.getElementById('search-entity').addEventListener('input', updateGraph);
+        });
+
+        // DNA edit
+        document.getElementById('edit-dna-btn').addEventListener('click', () => {
+            document.getElementById('dna-edit').style.display = 'block';
+            document.getElementById('dna-text').value = dnaText;
+        });
+        document.getElementById('save-dna').addEventListener('click', () => {
+            const newDna = document.getElementById('dna-text').value;
+            showStatus('Saving DNA...');
+            fetch('/update_dna', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({dna: newDna})
+            }).then(() => {
+                dnaText = newDna;
+                showStatus('Updating tree...');
+                updateTree();
+                document.getElementById('dna-edit').style.display = 'none';
+                hideStatus();
+            });
+        });
+        document.getElementById('evolve-dna-btn').addEventListener('click', () => {
+            showStatus('Evolving DNA based on stories...');
+            fetch('/evolve_dna', {method: 'POST'})
+                .then(response => response.json())
+                .then(data => {
+                    dnaText = data.new_dna;
+                    showStatus('Updating tree...');
+                    updateTree();
+                    hideStatus();
+                    alert('DNA evolved!');
+                });
+        });
+
+        // Toggle world-building view
+        document.getElementById('toggle-world').addEventListener('click', () => {
+            const wb = document.getElementById('world-building');
+            wb.style.display = wb.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Tab functionality
+        function showTab(tabName) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(c => c.classList.remove('active'));
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Evolution timeline
+        function updateEvolutionTimeline(evolutionText) {
+            const container = d3.select('#evolution-timeline');
+            container.selectAll('*').remove();
+            if (!evolutionText) return;
+            const steps = evolutionText.split('Step ').slice(1).map(s => {
+                const [num, content] = s.split(': ');
+                return {step: parseInt(num), content: content.trim()};
+            });
+            const svg = container.append('svg').attr('width', 800).attr('height', steps.length * 50 + 50);
+            svg.selectAll('circle')
+                .data(steps)
+                .enter().append('circle')
+                .attr('cx', 50)
+                .attr('cy', (d, i) => 50 + i * 50)
+                .attr('r', 10)
+                .style('fill', 'steelblue');
+            svg.selectAll('text')
+                .data(steps)
+                .enter().append('text')
+                .attr('x', 80)
+                .attr('y', (d, i) => 55 + i * 50)
+                .text(d => "Step " + d.step + ": " + d.content.substring(0, 50) + "...")
+                .style('font-size', '12px');
+        }
+
+        // Initial graph load
+        showStatus('Loading graph...');
+        updateGraph();
+
+        // Export
+        document.getElementById('export-btn').addEventListener('click', () => {
+            fetch('/graph')
+                .then(response => response.json())
+                .then(data => {
+                    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'story_graph.json';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+        });
+
+        // Clear DB
+        document.getElementById('clear-db-btn').addEventListener('click', () => {
+            if (confirm('Clear all stories and graph?')) {
+                showStatus('Clearing database...');
+                fetch('/clear_db', {method: 'POST'})
+                    .then(() => {
+                        showStatus('Updating graph...');
+                        updateGraph();
+                        hideStatus();
+                        alert('DB cleared!');
+                    });
+            }
+        });
+        })();
+    </script>
+</body>
+</html>
