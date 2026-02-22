@@ -10,6 +10,8 @@ Components:
 - storage: SQLite, ChromaDB, Obsidian sync
 - modules: Processing units (evolution, narrative, etc.)
 - bridges: Integration with CALab, StoryLab
+- context: Deterministic context extraction for LLM prompts
+- validation: Consistency checking for generated content
 
 Plan by: opencode/glm-5-free
 Date: 2026-02-21
@@ -30,7 +32,26 @@ from GraphEngine.core import (
 from GraphEngine.core.node_schema import NodeSchema, NODE_TYPE_DEFINITIONS
 from GraphEngine.core.edge_schema import EdgeSchema, EDGE_TYPE_DEFINITIONS
 
+from GraphEngine.context import (
+    ContextExtractor,
+    ExtractedContext,
+    TaskType,
+    TaskTemplate,
+    ContextRequirement,
+    PromptSerializer,
+)
+
+from GraphEngine.validation import (
+    ConsistencyChecker,
+    ValidationResult,
+    Violation,
+    GeneratedContent,
+    ConstraintType,
+    Severity,
+)
+
 __all__ = [
+    # Core
     'KnowledgeGraph',
     'KnowledgeNode',
     'KnowledgeEdge',
@@ -45,6 +66,20 @@ __all__ = [
     'EDGE_TYPE_DEFINITIONS',
     'validate_node_properties',
     'validate_edge',
+    # Context
+    'ContextExtractor',
+    'ExtractedContext',
+    'TaskType',
+    'TaskTemplate',
+    'ContextRequirement',
+    'PromptSerializer',
+    # Validation
+    'ConsistencyChecker',
+    'ValidationResult',
+    'Violation',
+    'GeneratedContent',
+    'ConstraintType',
+    'Severity',
 ]
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
