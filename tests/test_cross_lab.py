@@ -61,7 +61,7 @@ class TestHybridCAAggregator(unittest.TestCase):
         self.assertIn('generation', d)
         self.assertIn('species', d)
         self.assertEqual(d['generation'], 5)
-        self.assertIn('1', d['species'])
+        self.assertIn(1, d['species'])
         
         j = ws.to_json()
         parsed = json.loads(j)

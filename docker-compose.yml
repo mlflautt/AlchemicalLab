@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  alchemicallab:
+    build: .
+    container_name: alchemicallab
+    ports:
+      - "8000:8000"
+    environment:
+      - ALCHEMICAL_DEBUG=false
+      - ALCHEMICAL_LOG_LEVEL=INFO
+      - ALCHEMICAL_LLM_PROVIDER=ollama
+      - ALCHEMICAL_LLM_MODEL=phi3.5
+      - ALCHEMICAL_LLM_URL=http://host.docker.internal:11434
+    volumes:
+      - ./data:/app/data
+      - ./config.yaml:/app/config.yaml
+    depends_on:
+      - chromadb
+    networks:
+      - alchemical-net
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: alchemical-chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    networks:
+      - alchemical-net
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: alchemical-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - alchemical-net
+
+networks:
+  alchemical-net:
+    driver: bridge
+
+volumes:
+  chroma-data:
+  ollama-data:

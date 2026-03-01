@@ -1,0 +1,112 @@
+# AlchemicalLab Requirements
+# Core computational libraries
+
+# Numerical computing & arrays
+numpy>=1.21.0
+scipy>=1.7.0
+numba>=0.58.0
+
+# Machine learning & differentiable programming  
+jax>=0.4.0
+jaxlib>=0.4.0
+flax>=0.7.0
+optax>=0.1.5
+haiku-dm>=0.0.9
+
+# Alternative ML frameworks
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Evolutionary algorithms
+deap>=1.3.3
+pygmo>=2.18.0
+
+# Visualization & plotting
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.14.0
+bokeh>=3.0.0
+
+# Web framework & APIs
+flask>=2.3.0
+fastapi>=0.100.0
+uvicorn>=0.22.0
+websockets>=11.0.0
+jinja2>=3.1.0
+aiofiles>=23.0.0
+requests>=2.31.0
+replicate>=0.25.0
+gtts>=2.5.0
+
+# Data handling & storage
+pandas>=2.0.0
+h5py>=3.8.0
+zarr>=2.14.0
+tables>=3.8.0
+sqlalchemy>=2.0.0
+
+# Image processing
+pillow>=10.0.0
+scikit-image>=0.20.0
+opencv-python>=4.7.0
+
+# Graph & network analysis
+networkx>=3.1.0
+igraph>=0.10.0
+graph-tool>=2.45.0  # Optional, requires special installation
+
+# Vector databases & embeddings
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
+# Parallel computing
+joblib>=1.2.0
+dask>=2023.5.0
+ray>=2.4.0
+
+# Scientific computing extensions
+sympy>=1.12.0
+statsmodels>=0.14.0
+scikit-learn>=1.3.0
+
+# Development & testing
+pytest>=7.3.0
+pytest-cov>=4.0.0
+black>=23.3.0
+flake8>=6.0.0
+mypy>=1.3.0
+pre-commit>=3.3.0
+
+# Documentation
+sphinx>=6.2.0
+sphinx-rtd-theme>=1.2.0
+nbsphinx>=0.9.0
+
+# Jupyter & notebooks
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+ipython>=8.13.0
+ipywidgets>=8.0.0
+
+# Utilities
+tqdm>=4.65.0
+rich>=13.3.0
+click>=8.1.0
+pyyaml>=6.0.0
+toml>=0.10.0
+python-dotenv>=1.0.0
+
+# CLI
+argparse>=0.2.0
+
+# Optional performance libraries (install based on system)
+# cupy-cuda11x>=12.0.0  # For NVIDIA CUDA 11.x
+# cupy-cuda12x>=12.0.0  # For NVIDIA CUDA 12.x
+# jaxlib[cuda11_pip]>=0.4.0  # JAX with CUDA support
+# jaxlib[cuda12_pip]>=0.4.0  # JAX with CUDA 12 support
+
+# Optional specialized libraries
+# mesa>=2.1.0  # Agent-based modeling
+# networkx>=3.1.0  # Graph analysis
+# pygraphviz>=1.10.0  # Graph visualization (requires graphviz)
+# pycairo>=1.23.0  # Cairo graphics bindings

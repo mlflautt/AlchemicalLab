@@ -1,0 +1,75 @@
+# AlchemicalLab Configuration
+# ============================
+
+# Global settings
+app:
+  name: "AlchemicalLab"
+  version: "0.1.0"
+  debug: false
+  log_level: "INFO"
+
+# Knowledge Graph settings
+graph:
+  db_path: "knowledge_graph.db"
+  chroma_path: "./chroma_db"
+  obsidian_vault: null  # Path to Obsidian vault (optional)
+  enable_vector_search: true
+  vector_model: "sentence-transformers/all-MiniLM-L6-v2"
+
+# StoryLab settings
+storylab:
+  llm_provider: "ollama"  # or "openai", "anthropic"
+  model: "phi3.5"
+  base_url: "http://localhost:11434"
+  temperature: 0.7
+  max_tokens: 2048
+  api_key: null  # Set for OpenAI/Anthropic
+
+# CALab settings
+calab:
+  world_size: [100, 100]
+  default_density: 0.3
+  random_seed: 42
+  simulation_interval: 10
+  enable_pattern_detection: true
+  pattern_detection_interval: 5
+
+# NNLab settings
+nnlab:
+  backend: "jax"  # or "numpy" for CPU fallback
+  device: "cpu"   # or "cuda"
+  batch_size: 32
+
+# SynthLab settings
+synthlab:
+  ca_type: "conway"  # or "hexagonal", "neural"
+  grid_size: [50, 50]
+  evolution_steps: 100
+
+# EALab settings
+ealab:
+  population_size: 100
+  generations: 50
+  mutation_rate: 0.1
+  crossover_rate: 0.8
+
+# API settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+  cors_enabled: true
+  rate_limit: 100  # requests per minute
+
+# Storage settings
+storage:
+  export_format: "json"  # or "yaml", "json"
+  backup_enabled: true
+  backup_interval: 3600  # seconds
+  backup_path: "./backups"
+
+# Performance settings
+performance:
+  cache_enabled: true
+  cache_ttl: 3600  # seconds
+  max_workers: 4
+  memory_limit_mb: 4096
