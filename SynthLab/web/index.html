@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlchemicalLab - SynthLab Multi-layer CA Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AlchemicalLab: Multi-layer Semantic CA</h1>
+            <div class="controls">
+                <button id="playPause">Play</button>
+                <button id="reset">Reset</button>
+                <span id="stepCounter">Step: 0</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="visualization-panel">
+                <div class="grid-container">
+                    <div class="grid-section">
+                        <h3>Alive Cells</h3>
+                        <canvas id="aliveCanvas" width="400" height="400"></canvas>
+                    </div>
+                    <div class="grid-section">
+                        <h3>Energy</h3>
+                        <canvas id="energyCanvas" width="400" height="400"></canvas>
+                    </div>
+                    <div class="grid-section">
+                        <h3>Species</h3>
+                        <canvas id="speciesCanvas" width="400" height="400"></canvas>
+                    </div>
+                    <div class="grid-section">
+                        <h3>Resources</h3>
+                        <canvas id="resourcesCanvas" width="400" height="400"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-panel">
+                <h3>System Statistics</h3>
+                <div id="statsContainer">
+                    <div class="stat-item">
+                        <span class="stat-label">Alive Cells:</span>
+                        <span class="stat-value" id="aliveCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average Energy:</span>
+                        <span class="stat-value" id="avgEnergy">0.000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Species Diversity:</span>
+                        <span class="stat-value" id="speciesDiversity">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average Age:</span>
+                        <span class="stat-value" id="avgAge">0.00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average Health:</span>
+                        <span class="stat-value" id="avgHealth">0.000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average Wealth:</span>
+                        <span class="stat-value" id="avgWealth">0.000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Average Technology:</span>
+                        <span class="stat-value" id="avgTech">0.000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Resources:</span>
+                        <span class="stat-value" id="totalResources">0.0</span>
+                    </div>
+                </div>
+
+                <div class="charts">
+                    <div class="chart-container">
+                        <h4>Population Over Time</h4>
+                        <svg id="populationChart" width="300" height="150"></svg>
+                    </div>
+                    <div class="chart-container">
+                        <h4>Energy Over Time</h4>
+                        <svg id="energyChart" width="300" height="150"></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

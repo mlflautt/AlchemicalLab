@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alchemical-lab.com/schemas/audio-preset.schema.json",
+  "title": "AlchemicalSynth Audio Preset",
+  "description": "Audio preset configuration for AlchemicalSynth terrain synthesizer",
+  "type": "object",
+  "required": ["name", "version", "terrain", "trajectory"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the preset"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Semantic version of the preset"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description"
+    },
+    "author": {
+      "type": "string",
+      "description": "Preset author"
+    },
+    "terrain": {
+      "type": "object",
+      "description": "Terrain generation parameters",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ca", "fractal", "ca_fractal_hybrid", "noise", "custom"],
+          "description": "Terrain generation method"
+        },
+        "grid_size": {
+          "type": "array",
+          "items": {"type": "integer", "minimum": 16},
+          "minItems": 2,
+          "maxItems": 2,
+          "default": [128, 128],
+          "description": "Grid dimensions [width, height]"
+        },
+        "ca_rule": {
+          "type": "string",
+          "description": "CA rule name (conway, brians_brain, rule30, etc.)"
+        },
+        "ca_params": {
+          "type": "object",
+          "description": "Additional CA parameters",
+          "properties": {
+            "initial_density": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.3},
+            "evolution_speed": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.1},
+            "states": {"type": "integer", "minimum": 2, "maximum": 10, "default": 2},
+            "neighborhood": {"type": "string", "enum": ["moore", "von_neumann", "hex"], "default": "moore"}
+          }
+        },
+        "fractal_type": {
+          "type": "string",
+          "enum": ["mandelbrot", "julia", "perlin", "worley", "simplex", "fbm", "ridged", "voronoi"],
+          "description": "Fractal algorithm type"
+        },
+        "fractal_octaves": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16,
+          "default": 4
+        },
+        "fractal_lacunarity": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 2.0
+        },
+        "fractal_persistence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5
+        },
+        "fractal_dim": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 2,
+          "default": 1.5,
+          "description": "Fractal dimension for timbre control"
+        },
+        "hybrid_blend": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5,
+          "description": "Blend between CA and fractal (0=CA, 1=fractal)"
+        },
+        "seed": {
+          "type": "integer",
+          "description": "Random seed for reproducibility"
+        }
+      }
+    },
+    "trajectory": {
+      "type": "object",
+      "description": "Trajectory scanning parameters",
+      "required": ["shape", "frequency"],
+      "properties": {
+        "shape": {
+          "type": "string",
+          "enum": ["ellipse", "figure8", "lissajous", "meander", "spiral", "rose", "custom_path"],
+          "description": "2D trajectory shape"
+        },
+        "frequency": {
+          "type": "number",
+          "minimum": 20,
+          "maximum": 20000,
+          "description": "Base frequency in Hz"
+        },
+        "harmonics": {
+          "type": "array",
+          "items": {"type": "number"},
+          "description": "Harmonic multipliers"
+        },
+        "meanderance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.2,
+          "description": "Random displacement amount"
+        },
+        "meander_speed": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.1,
+          "description": "Speed of meandering"
+        },
+        "feedback": {
+          "type": "object",
+          "description": "Recursive feedback parameters",
+          "properties": {
+            "enabled": {"type": "boolean", "default": false},
+            "delay_samples": {"type": "integer", "minimum": 1, "default": 4410},
+            "compression": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.8},
+            "radius": {"type": "number", "minimum": 0.1, "maximum": 2, "default": 1.0}
+          }
+        },
+        "translation": {
+          "type": "object",
+          "description": "Trajectory translation over time",
+          "properties": {
+            "x_speed": {"type": "number", "default": 0},
+            "y_speed": {"type": "number", "default": 0},
+            "circular": {"type": "boolean", "default": false}
+          }
+        }
+      }
+    },
+    "synthesis": {
+      "type": "object",
+      "description": "Synthesis parameters",
+      "properties": {
+        "waveform": {
+          "type": "string",
+          "enum": ["sine", "saw", "square", "triangle", "sample_hold", "wavetable"],
+          "default": "sine"
+        },
+        "oversampling": {
+          "type": "integer",
+          "enum": [1, 2, 4, 8],
+          "default": 4,
+          "description": "Anti-aliasing oversampling factor"
+        },
+        "filter": {
+          "type": "object",
+          "description": "Output filter settings",
+          "properties": {
+            "type": {"type": "string", "enum": ["lowpass", "highpass", "bandpass"], "default": "lowpass"},
+            "cutoff": {"type": "number", "minimum": 20, "maximum": 20000, "default": 8000},
+            "resonance": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.5}
+          }
+        },
+        "saturation": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0,
+          "description": "Wave shaping saturation amount"
+        }
+      }
+    },
+    "envelope": {
+      "type": "object",
+      "description": "Amplitude envelope",
+      "properties": {
+        "attack": {"type": "number", "minimum": 0, "maximum": 10, "default": 0.01},
+        "decay": {"type": "number", "minimum": 0, "maximum": 10, "default": 0.2},
+        "sustain": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.7},
+        "release": {"type": "number", "minimum": 0, "maximum": 30, "default": 0.5},
+        "es_toggle": {
+          "type": "boolean",
+          "default": false,
+          "description": "Envelope affects trajectory size (ES-1 style)"
+        }
+      }
+    },
+    "modulation": {
+      "type": "object",
+      "description": "LFO and modulation settings",
+      "properties": {
+        "lfo_frequency": {"type": "number", "minimum": 0.01, "maximum": 20, "default": 1},
+        "lfo_depth": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.3},
+        "lfo_target": {
+          "type": "string",
+          "enum": ["frequency", "amplitude", "trajectory_x", "trajectory_y", "filter", "all"],
+          "default": "frequency"
+        }
+      }
+    },
+    "spatial": {
+      "type": "object",
+      "description": "Spatial audio settings",
+      "properties": {
+        "stereo_width": {"type": "number", "minimum": 0, "maximum": 2, "default": 1},
+        "pan_mode": {"type": "string", "enum": ["mono", "stereo", "binaural"], "default": "stereo"}
+      }
+    }
+  }
+}
